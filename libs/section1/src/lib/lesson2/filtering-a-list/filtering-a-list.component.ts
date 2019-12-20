@@ -1,4 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Subject } from 'rxjs';
+import { FormControl, FormGroup } from '@angular/forms';
+import { startWith, takeUntil, tap } from 'rxjs/operators';
 
 type Employee = 'Zack' | 'Jeff' | 'Victor';
 
@@ -26,6 +29,7 @@ const filterByTaskName = (task: Task, { nameFilter }: FormValue): boolean =>
   styleUrls: ['./filtering-a-list.component.css']
 })
 export class FilteringAListComponent implements OnInit, OnDestroy {
+  private destroying$ = new Subject<void>();
   tasks: Task[] = [
     { name: 'Create forms course', assignedTo: 'Zack' },
     { name: 'Build file cabinets', assignedTo: 'Zack' },
@@ -34,10 +38,25 @@ export class FilteringAListComponent implements OnInit, OnDestroy {
     { name: 'make all the $$$', assignedTo: null }
   ];
   filteredTasks: Task[] = [];
+  form = new FormGroup({
+    showOnlyUnassignedTickets: new FormControl(false),
+    nameFilter: new FormControl('s')
+  });
 
-  constructor() {}
+  constructor() {
+  }
 
-  ngOnInit() {}
+  ngOnInit() {
+    this.form.valueChanges.pipe(
+      takeUntil(this.destroying$),
+      startWith(this.form.value),
+      tap((formValue: FormValue) => this.filteredTasks = this.tasks
+        .filter((t) => filterForUnassignedTickets(t, formValue))
+        .filter((t) => filterByTaskName(t, formValue)))
+    ).subscribe();
+  }
 
-  ngOnDestroy() {}
+  ngOnDestroy() {
+    this.destroying$.next();
+  }
 }

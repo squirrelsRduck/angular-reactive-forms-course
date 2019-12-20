@@ -15,13 +15,13 @@
   </p>
 </forms-course-instructions>
 
-<form>
+<form [formGroup]="form">
   <div>
     <label for="nameFilter">Task Name:</label>
-    <input id="nameFilter" type="text" />
+    <input id="nameFilter" type="text" formControlName="nameFilter" />
   </div>
   <div>
-    <input type="checkbox" id="showOnlyUnassignedTickets" />
+    <input type="checkbox" id="showOnlyUnassignedTickets" formControlName="showOnlyUnassignedTickets"/>
     <label for="showOnlyUnassignedTickets">Show Only Unassigned Tickets</label>
   </div>
   <div>
@@ -32,5 +32,5 @@
       </li>
     </ul>
   </div>
-  <pre>Form Value:</pre>
+  <pre>Form Value: {{form.value | json}}</pre>
 </form>

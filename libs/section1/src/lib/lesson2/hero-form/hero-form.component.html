@@ -12,39 +12,39 @@
   </p>
 </forms-course-instructions>
 
-<form>
+<form [formGroup]="form">
   <fieldset>
     <legend>Hero Form</legend>
 
     <label for="name">Hero Name: </label>
-    <input type="text" id="name" />
+    <input type="text" id="name" formControlName="name"/>
 
-    <form>
+    <form formGroupName="stats">
       <fieldset>
         <legend>Hero Stats</legend>
 
         <div>
           <label for="attack">Attack: </label>
-          <input type="number" id="attack" />
+          <input type="number" id="attack" formControlName="attack"/>
         </div>
 
         <div>
           <label for="defense">Defense: </label>
-          <input type="number" id="defense" />
+          <input type="number" id="defense" formControlName="defense"/>
         </div>
 
         <div>
           <label for="speed">Speed: </label>
-          <input type="number" id="speed" />
+          <input type="number" id="speed" formControlName="speed"/>
         </div>
 
         <div>
           <label for="health">Health: </label>
-          <input type="number" id="health" />
+          <input type="number" id="health" formControlName="health"/>
         </div>
       </fieldset>
     </form>
   </fieldset>
 </form>
 
-<pre>hero: </pre>
+<pre>hero: {{ form.value | json }}</pre>

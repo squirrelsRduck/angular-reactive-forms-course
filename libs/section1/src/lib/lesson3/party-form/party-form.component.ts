@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Hero } from '../../lesson2/completed/lesson2-completed-hero-form/lesson2-completed-hero-form.component';
-import { FormGroup, FormControl } from '@angular/forms';
+import { FormGroup, FormControl, FormArray } from '@angular/forms';
 import { animations } from '@forms-course/ui-common';
 
 export interface Party {
@@ -38,6 +38,13 @@ const createHeroForm = (hero?: Hero): FormGroup =>
 })
 export class PartyFormComponent implements OnInit {
   possiblePartySizes = [1, 2, 3, 4, 5, 6];
+  form = new FormGroup({
+    name: new FormControl(''),
+    partySize: new FormControl(2),
+    heroes: new FormArray([
+      new FormArray([createHeroForm(), createHeroForm()])
+    ])
+  })
 
   constructor() {}
 

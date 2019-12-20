@@ -41,10 +41,8 @@ export class PartyFormComponent implements OnInit {
   form = new FormGroup({
     name: new FormControl(''),
     partySize: new FormControl(2),
-    heroes: new FormArray([
-      new FormArray([createHeroForm(), createHeroForm()])
-    ])
-  })
+    heroes: new FormArray([createHeroForm(), createHeroForm()])
+  });
 
   constructor() {}
 

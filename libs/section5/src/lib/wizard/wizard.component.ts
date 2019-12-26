@@ -4,7 +4,7 @@ import { ConfigSettings, configSettingsSelector, savePendingSelector } from '../
 import { combineLatest, Observable, of, Subject } from 'rxjs';
 import { select, Store } from '@ngrx/store';
 import { MatDialog } from '@angular/material';
-import { first, map, startWith, takeUntil, tap } from 'rxjs/operators';
+import { delay, first, map, startWith, takeUntil, tap } from 'rxjs/operators';
 import { createConfigSettingFormControl } from '../wizard-form.utils';
 import * as deepEqual from 'deep-equal';
 
@@ -31,15 +31,20 @@ export class WizardComponent implements OnDestroy {
     this.configSettingsFromStore$
       .pipe(
         takeUntil(this._destroying$),
+        delay(0),
         tap(configSettings => {
           if (this.control) {
             this.control.setValue(configSettings);
           } else {
             this.control = createConfigSettingFormControl(configSettings);
+            this.configPart2();
           }
         })
       )
       .subscribe();
+  }
+
+  configPart2() {
     this._formIsValid$ = this.control.statusChanges.pipe(
       startWith(this.control.status),
       map(status => status === 'VALID')
@@ -48,13 +53,14 @@ export class WizardComponent implements OnDestroy {
       this.control.valueChanges,
       this.configSettingsFromStore$
     ]).pipe(
-      map((([formVal, storeVal]) => !deepEqual(formVal, storeVal)))
+      map(([formVal, storeVal]) => !deepEqual(formVal, storeVal))
     );
     this.submitButtonDisabled$ = combineLatest([
       this._formIsValid$,
       this._formHasChanges$,
       this.savePending$
     ]).pipe(
+      delay(0),
       map(
         ([formIsValid, formHasChanges, savePending]) =>
           !formIsValid || !formHasChanges || savePending

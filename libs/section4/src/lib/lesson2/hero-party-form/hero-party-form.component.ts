@@ -5,7 +5,8 @@ import {
   NG_VALUE_ACCESSOR
 } from '@angular/forms';
 import { Subject } from 'rxjs';
-import { Party } from '../../hero-party-utils';
+import { createPartyFormGroup, Party } from '../../hero-party-utils';
+import { startWith, takeUntil, tap } from 'rxjs/operators';
 
 @Component({
   selector: 'forms-course-hero-party-form',
@@ -25,12 +26,19 @@ export class HeroPartyFormComponent implements OnDestroy, ControlValueAccessor {
   validPartySizes = [1, 2, 3, 4, 5, 6];
 
   writeValue(party: Party) {
-    // add your implementation here!
-    // be sure to check out the hero party utils for this!!!
+    if(this.form) {
+      this.form.setValue(party);
+    } else {
+      this.form = createPartyFormGroup(party, this._destroying$);
+    }
   }
 
-  registerOnChange() {
-    // add your implementation here!
+  registerOnChange(fn) {
+    this.form.valueChanges.pipe(
+      startWith(this.form.value),
+      takeUntil(this._destroying$),
+      tap(fn)
+    ).subscribe();
   }
 
   registerOnTouched(fn) {}

@@ -1,10 +1,11 @@
 import { Component, OnDestroy } from '@angular/core';
 import {
-  ControlValueAccessor,
+  ControlValueAccessor, FormControl,
   FormGroup,
   NG_VALUE_ACCESSOR
 } from '@angular/forms';
 import { Subject } from 'rxjs';
+import { map, startWith, takeUntil, tap } from 'rxjs/operators';
 
 const padZero = (n: number): string => (n < 10 ? `0${n}` : `${n}`);
 const timeString = (date: Date) =>
@@ -35,11 +36,27 @@ export class DateTimePickerComponent
   private _onTouched;
 
   writeValue(date: Date) {
-    // create your implementation here!
+    if(this.formGroup) {
+      this.formGroup.setValue({
+        date: dateString(date),
+        time: timeString(date)
+      })
+    } else {
+      this.formGroup = new FormGroup({
+        date: new FormControl(dateString(date)),
+        time: new FormControl(timeString(date))
+      })
+    }
   }
 
   registerOnChange(fn) {
-    // create your implementation here!
+    this.formGroup.valueChanges.pipe(
+      startWith(this.formGroup.value),
+      takeUntil(this._destroying$),
+      map(({date, time}) =>
+        date && time ? new Date(`${date} ${time}`): null),
+      tap(fn)
+    ).subscribe()
   }
 
   registerOnTouched(fn) {
@@ -51,7 +68,7 @@ export class DateTimePickerComponent
   }
 
   setDisabledState(isDisabled: boolean) {
-    // create your implementation here!
+    isDisabled ? this.formGroup.disable(): this.formGroup.enable();
   }
 
   ngOnDestroy() {

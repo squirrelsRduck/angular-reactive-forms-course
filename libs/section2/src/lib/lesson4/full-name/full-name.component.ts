@@ -6,6 +6,7 @@ import {
   Validators
 } from '@angular/forms';
 import { ApiService } from '../../api.service';
+import { map } from 'rxjs/operators';
 
 const TOTAL_NAME_LIMIT = 40;
 
@@ -38,7 +39,9 @@ export class FullNameComponent {
     },
     [fullNameTooLongValidator],
     [
-      // add your async validator here!!!
+      (group: FormGroup) => this.api.alreadyExists$(group.value).pipe(
+         map(b => b ? { alreadyExists: true } : null)
+      )
     ]
   );
 

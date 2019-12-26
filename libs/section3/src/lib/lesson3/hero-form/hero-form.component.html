@@ -1,4 +1,4 @@
-<form>
+<form [formGroup]="form">
   <mat-card>
     <mat-card-title>
       <legend>Hero Form</legend>
@@ -6,10 +6,10 @@
     <mat-card-content>
       <mat-form-field appearance="outline">
         <mat-label>Hero Name</mat-label>
-        <input matInput />
+        <input matInput formControlName="name" />
       </mat-form-field>
 
-      <form>
+      <form formGroupName="stats">
         <mat-card class="stat-card">
           <mat-card-title>
             Hero Stats
@@ -18,7 +18,8 @@
           <div *ngFor="let statName of stats">
             <mat-form-field appearance="outline">
               <mat-label>{{ statName | titlecase }}</mat-label>
-              <input matInput type="number" />
+              <input matInput type="number"
+                    [formControlName]="statName"/>
             </mat-form-field>
           </div>
         </mat-card>

@@ -1,11 +1,17 @@
 import { Component, OnDestroy } from '@angular/core';
 import {
-  ControlValueAccessor,
+  ControlValueAccessor, FormArray,
   FormGroup,
   NG_VALUE_ACCESSOR
 } from '@angular/forms';
 import { Subject } from 'rxjs';
-import { FamilyTreeModel } from '../../family-tree.utils';
+import {
+  createFamilyTreeControl,
+  createFamilyTreeGroup,
+  FamilyTreeModel,
+  updateFamilyTreeFormGroup
+} from '../../family-tree.utils';
+import { startWith, takeUntil, tap } from 'rxjs/operators';
 
 @Component({
   selector: 'forms-course-family-tree-form',
@@ -25,21 +31,31 @@ export class FamilyTreeFormComponent
   private _destroying$ = new Subject<void>();
 
   writeValue(v: FamilyTreeModel) {
-    // add your own implementation here!
-    // make sure you use and understand the functions in the
-    // family-tree.utils file!!!
+    if(this.form) {
+      updateFamilyTreeFormGroup(this.form, v);
+    } else {
+      this.form = createFamilyTreeGroup(v);
+    }
   }
 
   registerOnChange(fn) {
-    // add your own implmentation here!
+    this.form.valueChanges.pipe(
+      startWith(this.form.value),
+      takeUntil(this._destroying$),
+      tap(fn)
+    ).subscribe();
   }
 
   registerOnTouched(fn) {}
 
   addChild() {
-    // add your own implementation here!
-    // make sure you use and understand the functions in the
-    // family-tree.utils file!!!
+    (this.form.get('children') as FormArray).push(
+      createFamilyTreeControl({
+        name: '',
+        age: 0,
+        children: []
+      })
+    )
   }
 
   ngOnDestroy() {

@@ -1,6 +1,7 @@
 import { Component, OnDestroy } from '@angular/core';
-import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { ControlValueAccessor, FormControl, FormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { Subject } from 'rxjs';
+import { takeUntil, tap } from 'rxjs/operators';
 
 interface Hero {
   name: string;
@@ -25,13 +26,29 @@ const stats = ['attack', 'defense', 'speed', 'health'];
 export class HeroFormComponent implements OnDestroy, ControlValueAccessor {
   private _destroying$ = new Subject<void>();
   stats = stats;
+  form: FormGroup;
 
   writeValue(hero: Hero) {
-    // add your implementation here!
+    if (this.form) {
+      this.form.setValue(hero);
+    } else {
+      this.form = new FormGroup({
+        name: new FormControl(hero.name),
+        stats: new FormGroup(
+          stats.reduce(
+          (acc, statName) => ({
+            ...acc,
+            [statName]: new FormControl(hero.stats[statName])
+          }), {}))
+      });
+    }
   }
 
   registerOnChange(fn) {
-    // add your implementation here!
+   this.form.valueChanges.pipe(
+     takeUntil(this._destroying$),
+     tap(fn)
+   ).subscribe();
   }
 
   registerOnTouched(fn) {
@@ -43,7 +60,7 @@ export class HeroFormComponent implements OnDestroy, ControlValueAccessor {
   }
 
   setDisabledState(isDisabled: boolean) {
-    // add your implementation here!
+    isDisabled ? this.form.disable(): this.form.enable();
   }
 
   ngOnDestroy() {

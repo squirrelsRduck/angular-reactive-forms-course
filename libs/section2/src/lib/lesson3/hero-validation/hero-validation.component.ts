@@ -19,15 +19,37 @@ const singleStatValidators = [
 ];
 
 const heroValidator: ValidatorFn = (control: FormGroup) => {
-  // define the validator here!!
-  return null;
+  const totalStats = stats.reduce((acc, statName) => {
+    return acc + control.get('stats').get(statName).value;
+  }, 0);
+  return totalStats > MAX_TOTAL_STATS ? {
+    totalStats: {
+      totalStatMax: MAX_TOTAL_STATS,
+      heroTotalStats: totalStats
+    }
+  } : null;
 };
 
-const createSingleStatControl = () => new FormControl(0, singleStatValidators);
+const createSingleStatControl = () =>
+  new FormControl(0, singleStatValidators);
 
 @Component({
   selector: 'forms-course-hero-validation-2',
   templateUrl: './hero-validation.component.html',
   styleUrls: ['./hero-validation.component.css']
 })
-export class HeroValidationComponent {}
+export class HeroValidationComponent {
+  stats = stats;
+  form = new FormGroup({
+    name: new FormControl('', Validators.required),
+    stats: new FormGroup(stats.reduce(
+      (acc, statName) => {
+        acc[statName] = createSingleStatControl();
+        return acc;
+      }, {}))
+  }, {validators: [heroValidator]})
+  submit() {
+    alert(`Hero submitted with value
+    ${JSON.stringify(this.form.value, null, 2)}`);
+  }
+}

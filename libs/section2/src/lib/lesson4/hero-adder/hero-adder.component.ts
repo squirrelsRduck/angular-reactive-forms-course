@@ -1,10 +1,10 @@
 import { Component } from '@angular/core';
-import { FormGroup, FormControl, Validators } from '@angular/forms';
+import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { heroSelector } from '../../+state/hero.selector';
 import { select, Store } from '@ngrx/store';
-import { take, map } from 'rxjs/operators';
 import { MatSnackBar } from '@angular/material';
 import { createHero } from '../../+state/hero.actions';
+import { first, map } from 'rxjs/operators';
 
 @Component({
   selector: 'forms-course-hero-adder',
@@ -17,7 +17,13 @@ export class HeroAdderComponent {
       '',
       [Validators.required, Validators.maxLength(16)],
       [
-        // add your async validator here!
+        (control: FormControl) => this.store.pipe(
+          select(heroSelector),
+          map(heroNameArr => heroNameArr.includes(control.value as string) ? {
+            nameAlreadyExists: true
+          } : null),
+          first()
+        )
       ]
     )
   });

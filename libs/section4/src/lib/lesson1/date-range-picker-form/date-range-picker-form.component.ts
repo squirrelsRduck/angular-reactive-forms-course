@@ -5,7 +5,8 @@ import {
   FormGroup
 } from '@angular/forms';
 import { Subject } from 'rxjs';
-import { DateRange } from '../../date-range-picker-utils';
+import { createDateRangePickerFormGroup, DateRange } from '../../date-range-picker-utils';
+import { takeUntil, tap } from 'rxjs/operators';
 
 @Component({
   selector: 'forms-course-date-range-picker-form',
@@ -25,11 +26,18 @@ export class DateRangePickerFormComponent
   private _destroying$ = new Subject<void>();
 
   writeValue(v: DateRange) {
-    // add implementation here! Make sure to use the provided utility functions!!
+    if(this.form) {
+      this.form.setValue(v);
+    } else {
+      this.form = createDateRangePickerFormGroup(v);
+    }
   }
 
   registerOnChange(fn) {
-    // add implementation here!
+    this.form.valueChanges.pipe(
+      takeUntil(this._destroying$),
+      tap(fn)
+    ).subscribe()
   }
 
   registerOnTouched(fn) {}

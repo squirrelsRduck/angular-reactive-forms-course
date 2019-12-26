@@ -8,7 +8,10 @@ import { FormControl, FormGroup, Validators } from '@angular/forms';
 })
 export class MaterialExampleComponent {
   form = new FormGroup({
-    input: new FormControl('', [Validators.required, Validators.maxLength(10)])
+    input: new FormControl('', [
+      Validators.required,
+      Validators.maxLength(10)
+    ])
   });
 
   submit() {

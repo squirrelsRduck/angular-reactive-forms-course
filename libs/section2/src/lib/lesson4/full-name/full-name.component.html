@@ -12,7 +12,7 @@
       <div *ngIf="form.get('first')['errors'].required">
         A valid first name is required.
       </div>
-      <div *ngIf="form.get('first')['errors'].noNumbers">
+      <div *ngIf="form.get('first')['errors'].hasNumber">
         First Name cannot include any numeric characters.
       </div>
       <div *ngIf="form.get('first')['errors'].maxlength as maxlength">
@@ -30,7 +30,7 @@
       [class.is-valid]="form.get('middle').valid"
     />
     <div *ngIf="form.get('middle').invalid" class="invalid-feedback">
-      <div *ngIf="form.get('middle')['errors'].noNumbers">
+      <div *ngIf="form.get('middle')['errors'].hasNumber">
         Middle Name cannot include any numeric characters.
       </div>
       <div *ngIf="form.get('middle')['errors'].maxlength as maxlength">
@@ -51,7 +51,7 @@
       <div *ngIf="form.get('last')['errors'].required">
         A valid last name is required.
       </div>
-      <div *ngIf="form.get('last')['errors'].noNumbers">
+      <div *ngIf="form.get('last')['errors'].hasNumber">
         Last Name cannot include any numeric characters.
       </div>
       <div *ngIf="form.get('last')['errors'].maxlength as maxlength">

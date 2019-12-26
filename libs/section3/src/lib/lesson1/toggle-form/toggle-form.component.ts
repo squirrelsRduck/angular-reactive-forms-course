@@ -5,6 +5,7 @@ import {
   NG_VALUE_ACCESSOR
 } from '@angular/forms';
 import { Subject } from 'rxjs';
+import { startWith, takeUntil, tap } from 'rxjs/operators';
 
 @Component({
   selector: 'forms-course-toggle-form',
@@ -24,14 +25,24 @@ export class ToggleFormComponent implements OnDestroy, ControlValueAccessor {
   private _onTouched;
 
   writeValue(v: boolean) {
-    // add your implementation here!
+    if(this.control) {
+      this.control.setValue(v);
+    } else {
+      this.control = new FormControl(v);
+    }
   }
 
   registerOnChange(fn) {
-    // add your implementation here!
+    this.control.valueChanges.pipe(
+      takeUntil(this._destroying),
+      startWith(this.control.value),
+      tap(v => fn(v))
+    ).subscribe();
   }
 
-  registerOnTouched(fn) {}
+  registerOnTouched(fn) {
+    this._onTouched = fn;
+  }
 
   ngOnDestroy() {
     this._destroying.next();

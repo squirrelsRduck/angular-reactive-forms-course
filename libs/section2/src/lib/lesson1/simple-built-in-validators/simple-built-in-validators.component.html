@@ -1,5 +1,5 @@
 <label for="email">My email is: </label>
-<input type="email" id="email" />
+<input type="email" id="email" [formControl]="control" />
 
-<pre>errors: [[ show errors here ]]</pre>
-<pre>status: [[ show form status here ]]</pre>
+<pre>errors: {{ control.errors | json }}</pre>
+<pre>status: {{ control.status | json }} </pre>

@@ -84,7 +84,6 @@ export class Lesson3CompletedPartyFormComponent implements OnInit {
     this.form.valueChanges
       .pipe(
         startWith(this.form.value),
-        debounceTime(0),
         tap(({ partySize, heroes }: Party) => {
           if (partySize === heroes.length) {
             return;

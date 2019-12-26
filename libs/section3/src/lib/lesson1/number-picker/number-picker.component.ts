@@ -1,5 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, ElementRef, ViewChild } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { MatButton } from '@angular/material';
 
 @Component({
   selector: 'forms-course-number-picker',
@@ -17,28 +18,43 @@ export class NumberPickerComponent implements ControlValueAccessor {
   value: number;
   private _onChange;
   private _onTouched;
+  @ViewChild('subtract', { static: true }) subtract: MatButton;
+  @ViewChild('add', { static: true }) add: MatButton;
+  @ViewChild('display', { static: true }) display: ElementRef;
 
   subtractOne() {
-    // add your implementation here!
+    this.value --;
+    this._onChange(this.value);
   }
 
   addOne() {
-    // add your implementation here!
+    this.value ++;
+    this._onChange(this.value);
   }
 
   writeValue(v: number) {
-    // add your implementation here!
+    this.value = v;
   }
 
   registerOnChange(fn) {
-    // add your implementation here!
+    this._onChange = fn;
   }
 
   registerOnTouched(fn) {
-    // add your implementation here!
+    this._onTouched = fn;
   }
 
   blur() {
-    // add your implementation here!
+    setTimeout(() => {
+      const vcNativeElements = [this.display, this.add, this.subtract]
+        .map((e: any) => {
+          debugger;
+          return e.nativeElement || e._elementRef.nativeElement;
+        });
+      if(!vcNativeElements.includes(document.activeElement)) {
+        console.info('in blue', document.activeElement)
+        this._onTouched();
+      }
+    });
   }
 }

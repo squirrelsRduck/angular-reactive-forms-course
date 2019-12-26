@@ -1,27 +1,12 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import { FormControl } from '@angular/forms';
-import {
-  ConfigSettings,
-  configSettingsSelector,
-  savePendingSelector,
-  submitSaveRequest
-} from '../+state';
-import { Observable, Subject, combineLatest, of } from 'rxjs';
-import { Store, select } from '@ngrx/store';
+import { ConfigSettings, configSettingsSelector, savePendingSelector } from '../+state';
+import { combineLatest, Observable, of, Subject } from 'rxjs';
+import { select, Store } from '@ngrx/store';
 import { MatDialog } from '@angular/material';
-import {
-  takeUntil,
-  tap,
-  startWith,
-  map,
-  shareReplay,
-  take,
-  switchMap
-} from 'rxjs/operators';
+import { first, map, startWith, takeUntil, tap } from 'rxjs/operators';
 import { createConfigSettingFormControl } from '../wizard-form.utils';
 import * as deepEqual from 'deep-equal';
-import { CompletedDiscardChangesDialogComponent } from '../completed/completed-discard-changes-dialog/completed-discard-changes-dialog.component';
-import { CompletedConfimationDialogComponent } from '../completed/completed-confimation-dialog/completed-confimation-dialog.component';
 
 @Component({
   selector: 'forms-course-wizard',
@@ -47,15 +32,24 @@ export class WizardComponent implements OnDestroy {
       .pipe(
         takeUntil(this._destroying$),
         tap(configSettings => {
-          // create your form here in lesson 3
+          if (this.control) {
+            this.control.setValue(configSettings);
+          } else {
+            this.control = createConfigSettingFormControl(configSettings);
+          }
         })
       )
       .subscribe();
-    // this._formIsValid$ = this.control.statusChanges.pipe(
-    //   startWith(this.control.status),
-    //   map(status => status === 'VALID')
-    // );
-    this._formHasChanges$ = of(true); // implement your change detection here!!! (in lesson 3)
+    this._formIsValid$ = this.control.statusChanges.pipe(
+      startWith(this.control.status),
+      map(status => status === 'VALID')
+    );
+    this._formHasChanges$ = combineLatest([
+      this.control.valueChanges,
+      this.configSettingsFromStore$
+    ]).pipe(
+      map((([formVal, storeVal]) => !deepEqual(formVal, storeVal)))
+    );
     this.submitButtonDisabled$ = combineLatest([
       this._formIsValid$,
       this._formHasChanges$,
@@ -69,22 +63,25 @@ export class WizardComponent implements OnDestroy {
     this.discardChangesButtonDisabled$ = this._formHasChanges$.pipe(
       map(hasChanges => !hasChanges)
     );
-    // this.savePending$
-    //   .pipe(
-    //     takeUntil(this._destroying$),
-    //     tap(savePending =>
-    //       savePending ? this.control.disable() : this.control.enable()
-    //     )
-    //   )
-    //   .subscribe();
+    this.savePending$
+      .pipe(
+        takeUntil(this._destroying$),
+        tap(savePending =>
+          savePending ? this.control.disable() : this.control.enable()
+        )
+      )
+      .subscribe();
   }
 
   confirmSave() {
     // add your implementation here in lesson 5
   }
 
-  discardChanges() {
-    // add your implementation here in lesson 3
+  async discardChanges() {
+    const configSettings = await this.configSettingsFromStore$.pipe(
+      first()
+    ).toPromise();
+    this.control.setValue(configSettings);
   }
 
   canDeactivate(): Observable<boolean> {

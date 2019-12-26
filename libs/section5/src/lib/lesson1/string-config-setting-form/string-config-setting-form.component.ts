@@ -37,11 +37,26 @@ export class StringConfigSettingFormComponent
   _onTouched;
 
   writeValue(v: string) {
-    // add your implementation here!
+    if(this.control) {
+      this.control.setValue(v);
+    } else {
+      this.control = createStringConfigSettingControl(v);
+      this.formValueMatchesStoreValue$ = combineLatest([
+        this.control.valueChanges.pipe(startWith(this.control.value)),
+        this._storeValue$
+      ]).pipe(
+        map(([fv, sv]) => fv === sv)
+      )
+    }
   }
 
   registerOnChange(fn) {
-    // add your implementation here!
+    this.control.valueChanges.pipe(
+      startWith(this.control.value),
+      takeUntil(this._destroying$),
+      tap(fn)
+    )
+      .subscribe();
   }
 
   registerOnTouched(fn) {

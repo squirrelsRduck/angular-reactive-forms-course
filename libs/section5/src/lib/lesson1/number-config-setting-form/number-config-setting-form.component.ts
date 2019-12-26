@@ -37,11 +37,25 @@ export class NumberConfigSettingFormComponent
   _onTouched;
 
   writeValue(v: number) {
-    // add your implementation here!
+    if(this.control) {
+      this.control.setValue(v);
+    } else {
+      this.control = createNumberConfigSettingControl(v);
+      this.formValueMatchesStoreValue$ = combineLatest([
+        this.control.valueChanges.pipe(startWith(this.control.value)),
+        this._storeValue$
+      ]).pipe(
+        map(([formVal, storeVal]) => formVal === storeVal)
+      );
+    }
   }
 
   registerOnChange(fn) {
-    // add your implementation here!
+    this.control.valueChanges.pipe(
+      startWith(this.control.value),
+      takeUntil(this._destroying$),
+      tap(fn)
+    ).subscribe();
   }
 
   registerOnTouched(fn) {

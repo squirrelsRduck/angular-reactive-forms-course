@@ -36,11 +36,19 @@ export class WizardFormComponent implements OnDestroy, ControlValueAccessor {
   );
 
   writeValue(v: ConfigSettings) {
-    // add your implementation here!
+    if (this.form) {
+      this.form.setValue(v);
+    } else {
+      this.form = createWizardFormGroup(v);
+    }
   }
 
   registerOnChange(fn) {
-    // add your implementation here!
+    this.form.valueChanges.pipe(
+      startWith(this.form.value),
+      takeUntil(this._destroying$),
+      tap(fn)
+    ).subscribe()
   }
 
   registerOnTouched(fn) {}

@@ -8,7 +8,10 @@ import { FormGroup, FormControl, Validators } from '@angular/forms';
 })
 export class BootstapExampleComponent {
   form = new FormGroup({
-    input: new FormControl('', [Validators.required, Validators.maxLength(10)])
+    input: new FormControl('', [
+      Validators.required,
+      Validators.maxLength(10)
+    ])
   });
 
   submit() {

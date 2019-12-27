@@ -17,6 +17,7 @@ import {
 import { MatSort, Sort } from '@angular/material';
 import { Observable, ReplaySubject, Subject } from 'rxjs';
 import { Hero, HeroColumnFilters } from '../../+state/hero.utils';
+import { filter, startWith, takeUntil, tap } from 'rxjs/operators';
 
 @Component({
   selector: 'forms-course-hero-grid',
@@ -39,17 +40,35 @@ export class HeroGridComponent
   form: FormGroup;
 
   writeValue(v: HeroColumnFilters) {
-    // create your own implementation here
-    this.form = new FormGroup(
-      this.columns.reduce(
-        (acc, columnName) => ({ ...acc, [columnName]: new FormControl('') }),
-        {}
-      )
-    );
+    if (this.form) {
+       this.form.setValue(v);
+    } else {
+      this.form = new FormGroup(
+        this.columns.reduce(
+          (acc, columnName) => ({ ...acc, [columnName]: new FormControl('') }),
+          {}
+        )
+      );
+    }
+    this._columnFiltersTurnedOn$.pipe(
+      takeUntil(this._destroying),
+      filter(val => !val),
+      tap(() => this.form.setValue({
+        name: '',
+        attack: '',
+        defense: '',
+        speed: '',
+        health: ''
+      }))
+    ).subscribe();
   }
 
   registerOnChange(fn) {
-    // create your own implementation here
+    this.form.valueChanges.pipe(
+      startWith(this.form.value),
+      takeUntil(this._destroying),
+      tap(fn)
+    ).subscribe();
   }
 
   registerOnTouched(fn) {}

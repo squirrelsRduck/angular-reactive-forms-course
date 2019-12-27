@@ -11,7 +11,7 @@ import {
   NG_VALUE_ACCESSOR
 } from '@angular/forms';
 import { combineLatest, Observable, ReplaySubject, Subject } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { map, startWith, switchMap, takeUntil, tap } from 'rxjs/operators';
 
 const createPaginationOptions = (
   currentPage: number,
@@ -52,6 +52,7 @@ export class PaginationFormComponent
   implements ControlValueAccessor, OnDestroy, OnChanges {
   @Input() totalPages = 1;
   private _totalPages$ = new ReplaySubject<number>(1);
+  // TODO: figure out why this doesnt need an input decorator
   control: FormControl;
   private _destroying = new Subject<void>();
   public paginationOptions$: Observable<number[]>;
@@ -61,8 +62,27 @@ export class PaginationFormComponent
   public showLast$: Observable<boolean>;
 
   writeValue(v: number) {
-    // create your own implementation here
-    // make sure to create all required Observables here!
+    if(this.control) this.control.setValue(v);
+    else {
+      this.control = new FormControl(v);
+      this.paginationOptions$ = this.control.valueChanges.pipe(
+        startWith(this.control.value),
+        switchMap(fv => this._totalPages$.pipe(
+          map(totalPages => createPaginationOptions(fv, totalPages))
+        ))
+      );
+
+      this.control.valueChanges.pipe(
+        startWith(this.control.value),
+        switchMap(fv => this._totalPages$.pipe(
+          tap(totalPages => {
+            if(fv > totalPages) {
+              this.control.setValue(totalPages);
+            }
+          })
+        ))
+      ).subscribe();
+    }
   }
 
   private _setFirstAndLastObservables() {
@@ -93,7 +113,11 @@ export class PaginationFormComponent
   }
 
   registerOnChange(fn) {
-    // create your own implemantation here!
+    this.control.valueChanges.pipe(
+      takeUntil(this._destroying),
+      startWith(this.control.value),
+      tap(fn)
+    ).subscribe();
   }
 
   registerOnTouched(fn) {}

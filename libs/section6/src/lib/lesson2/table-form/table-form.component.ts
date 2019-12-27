@@ -6,12 +6,13 @@ import {
   SimpleChanges
 } from '@angular/core';
 import {
-  ControlValueAccessor,
+  ControlValueAccessor, FormControl,
   FormGroup,
   NG_VALUE_ACCESSOR
 } from '@angular/forms';
 import { Observable, ReplaySubject, Subject } from 'rxjs';
 import { HeroTableFormValue } from '../../+state/hero.utils';
+import { delay, map, startWith, switchMap, takeUntil, tap } from 'rxjs/operators';
 
 @Component({
   selector: 'forms-course-table-form',
@@ -30,11 +31,29 @@ export class TableFormComponent
   totalPages$: Observable<number>;
 
   writeValue(v: HeroTableFormValue) {
-    // create your implementation here
+    if(this.form) this.form.setValue(v);
+    else {
+      this.form = new FormGroup({
+        filter: new FormControl(v.filter),
+        columnFilters: new FormControl(v.columnFilters),
+        pageSize: new FormControl(v.pageSize),
+        currentPage: new FormControl(v.currentPage)
+      });
+      this.totalPages$ = this.form.get('pageSize').valueChanges.pipe(
+        startWith(this.form.get('pageSize').value),
+        switchMap(pageSize => this._totalItems.pipe(
+          map(totalItems => Math.ceil(totalItems / pageSize))))
+      );
+    }
   }
 
   registerOnChange(fn) {
-    // create your implementation here
+    this.form.valueChanges.pipe(
+      delay(0),
+      takeUntil(this._destroying),
+      startWith(this.form.value),
+      tap(fn)
+    ).subscribe();
   }
 
   registerOnTouched() {}

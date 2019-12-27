@@ -1,6 +1,6 @@
 import { Component, OnDestroy } from '@angular/core';
 import { FormControl } from '@angular/forms';
-import { ConfigSettings, configSettingsSelector, savePendingSelector } from '../+state';
+import { ConfigSettings, configSettingsSelector, savePendingSelector, submitSaveRequest } from '../+state';
 import { combineLatest, Observable, of, Subject } from 'rxjs';
 import { select, Store } from '@ngrx/store';
 import { MatDialog } from '@angular/material';
@@ -8,6 +8,7 @@ import { delay, first, map, share, shareReplay, startWith, switchMap, takeUntil,
 import { createConfigSettingFormControl } from '../wizard-form.utils';
 import * as deepEqual from 'deep-equal';
 import { CompletedDiscardChangesDialogComponent } from '../completed/completed-discard-changes-dialog/completed-discard-changes-dialog.component';
+import { CompletedConfimationDialogComponent } from '../completed/completed-confimation-dialog/completed-confimation-dialog.component';
 
 @Component({
   selector: 'forms-course-wizard',
@@ -81,8 +82,28 @@ export class WizardComponent implements OnDestroy {
       .subscribe();
   }
 
-  confirmSave() {
-    // add your implementation here in lesson 5
+  async confirmSave() {
+    const storeData = await this.configSettingsFromStore$.pipe(first()).toPromise();
+    const dialogRef = this.dialog.open(CompletedConfimationDialogComponent, {
+      width: '600px',
+      data: Object.keys(storeData).reduce((acc, settingName) =>
+        this.control.value[settingName] === storeData[settingName] ?
+          acc :
+          [...acc, {
+            name: settingName,
+            replacedValue: storeData[settingName],
+            replacingValue: this.control.value[settingName]
+          }],
+      [])
+    });
+    const result = await dialogRef.afterClosed().pipe(first()).toPromise();
+    if(result) {
+      this.store.dispatch((
+        submitSaveRequest({
+          configSettings: this.control.value
+        })
+      ));
+    }
   }
 
   async discardChanges() {
@@ -95,7 +116,7 @@ export class WizardComponent implements OnDestroy {
   canDeactivate(): Observable<boolean> {
     return this._formHasChanges$.pipe(
       switchMap(hasChanges => {
-        if(hasChanges) {
+        if (hasChanges) {
           // open dialog, wait for user input
           const dialogRef = this.dialog
             .open(CompletedDiscardChangesDialogComponent);
@@ -104,7 +125,7 @@ export class WizardComponent implements OnDestroy {
           return of(true);
         }
       })
-    )
+    );
   }
 
   ngOnDestroy() {

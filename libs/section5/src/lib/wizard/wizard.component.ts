@@ -4,9 +4,10 @@ import { ConfigSettings, configSettingsSelector, savePendingSelector } from '../
 import { combineLatest, Observable, of, Subject } from 'rxjs';
 import { select, Store } from '@ngrx/store';
 import { MatDialog } from '@angular/material';
-import { delay, first, map, startWith, takeUntil, tap } from 'rxjs/operators';
+import { delay, first, map, share, shareReplay, startWith, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { createConfigSettingFormControl } from '../wizard-form.utils';
 import * as deepEqual from 'deep-equal';
+import { CompletedDiscardChangesDialogComponent } from '../completed/completed-discard-changes-dialog/completed-discard-changes-dialog.component';
 
 @Component({
   selector: 'forms-course-wizard',
@@ -53,7 +54,8 @@ export class WizardComponent implements OnDestroy {
       this.control.valueChanges,
       this.configSettingsFromStore$
     ]).pipe(
-      map(([formVal, storeVal]) => !deepEqual(formVal, storeVal))
+      map(([formVal, storeVal]) => !deepEqual(formVal, storeVal)),
+      shareReplay(1)
     );
     this.submitButtonDisabled$ = combineLatest([
       this._formIsValid$,
@@ -91,8 +93,18 @@ export class WizardComponent implements OnDestroy {
   }
 
   canDeactivate(): Observable<boolean> {
-    // add your implmentation here in lesson 4
-    return of(true);
+    return this._formHasChanges$.pipe(
+      switchMap(hasChanges => {
+        if(hasChanges) {
+          // open dialog, wait for user input
+          const dialogRef = this.dialog
+            .open(CompletedDiscardChangesDialogComponent);
+          return dialogRef.afterClosed();
+        } else {
+          return of(true);
+        }
+      })
+    )
   }
 
   ngOnDestroy() {

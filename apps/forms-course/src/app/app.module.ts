@@ -104,7 +104,9 @@ import { StoreDevtoolsModule } from '@ngrx/store-devtools';
         }
       },
       { path: '**', redirectTo: 'section-1' }
-    ])
+    ], {
+      // enableTracing: true
+    })
   ],
   providers: [],
   bootstrap: [AppComponent]
